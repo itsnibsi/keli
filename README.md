@@ -2,7 +2,7 @@
 
 `/w?city=<cityname>`
 
-```
+```json
 {
   "city": "Hyvinkää",
   "observationHour": 0,
