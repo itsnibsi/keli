@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -134,6 +135,10 @@ func GetWeatherData(city string) (weather WeatherData, err error) {
 
 	finalWeatherData := mergeWeatherData(weatherData)
 	finalWeatherData.LastUpdated = time.Now()
+
+	if finalWeatherData.City == "" {
+		return WeatherData{}, fmt.Errorf("No weather data found for city \"%s\"", city)
+	}
 
 	// Update the cache
 	cacheMutex.Lock()
