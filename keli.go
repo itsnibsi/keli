@@ -405,6 +405,10 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	city := r.URL.Path[1:]
 
+	if city == "" {
+		city = "Hyvinkää"
+	}
+
 	weather, err := GetWeatherData(city)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
