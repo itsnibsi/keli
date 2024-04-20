@@ -90,7 +90,6 @@
       .then(response => response.json())
       .then(places => {
         const placeList = document.getElementById('city-select')
-        placeList.size = 4;
         places.forEach(place => {
           const option = document.createElement('option')
           option.value = place
@@ -100,6 +99,7 @@
           }
           placeList.appendChild(option)
         })
+        placeList.size = 4;
         placeList.addEventListener('change', event => {
           window.location.href = '/' + event.target.value
         })
