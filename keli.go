@@ -466,13 +466,13 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 		</div>
 
 		<div class="p-8 bg-white shadow-md rounded-lg mt-4">
-			<h2 class="text-3xl text-gray-800 text-center pb-8">{{.WeatherSummary}}</h2>
 			<div class="flex flex-col justify-center items-center mb-4">
 				<div class="text-center">
 					<p class="text-6xl font-bold text-gray-900">{{.Temperature}}°C</p>
 					<p class="text-2xl font-bold text-gray-700">Tuntuu kuin {{.TemperatureFeelsLike}}°C</p>
 				</div>
 			</div>
+			<h2 class="text-2xl text-gray-800 text-center pb-8">{{.WeatherSummary}}</h2>
 			<div class="flex justify-center gap-4 items-center">
 				<p class="text-xl font-bold text-gray-700">Alin: {{.TemperatureMin}}°C</p>
 				<p class="text-xl font-bold text-gray-700">Ylin: {{.TemperatureMax}}°C</p>
