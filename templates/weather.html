@@ -18,7 +18,38 @@
 
 <body class="bg-gray-100">
   <div class="container mt-8 p-8">
-    <h1 class="text-3xl font-bold text-gray-900 text-center">{{.City}} (Klo {{.ObservationHour}})</h1>
+    <div class="relative hidden">
+      <select id="city-select"
+        class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+        <option value="">Valitse kaupunki</option>
+        <option value="Helsinki">Helsinki</option>
+        <option value="Tampere">Tampere</option>
+        <option value="Oulu">Oulu</option>
+        <option value="Turku">Turku</option>
+        <option value="Helsinki">Hyvinkää</option>
+      </select>
+      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+        <i class="fas fa-chevron-down"></i>
+      </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const selectElement = document.getElementById('city-select');
+        const cityName = '{{.City}}';
+        for (let i = 0; i < selectElement.options.length; i++) {
+          if (selectElement.options[i].value === cityName) {
+            selectElement.options[i].selected = true;
+            break;
+          }
+        }
+      });
+
+      document.getElementById('city-select').addEventListener('change', function () {
+        window.location.href = `/${this.value}`;
+      });
+    </script>
+
+    <h1 class="mt-4 text-3xl font-bold text-gray-900 text-center">{{.City}} (Klo {{.ObservationHour}})</h1>
 
     <div class="mt-8 bg-white shadow-md rounded-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 text-center">{{.WeatherSummary}}</h2>
