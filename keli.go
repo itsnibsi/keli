@@ -350,8 +350,8 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 func weatherTextHandler(w http.ResponseWriter, weather WeatherData) {
 	w.Header().Set("Content-Type", "text/plain")
 
-	output := fmt.Sprintf("Sää %s (Klo. %02d)\n\n", weather.City, weather.ObservationHour)
-	output += fmt.Sprintf("%s\n", weather.WeatherSummary)
+	output := fmt.Sprintf("Sää %s (Klo. %02d)\n", weather.City, weather.ObservationHour)
+	output += fmt.Sprintf("%s\n\n", weather.WeatherSummary)
 
 	output += fmt.Sprintf("Lämpötila: %s (Tuntuu kuin %s)\n", temperatureWithSign(weather.Temperature), temperatureWithSign(weather.TemperatureFeelsLike))
 	output += fmt.Sprintf("Päivän alin: %s\n", temperatureWithSign(weather.TemperatureMin))
