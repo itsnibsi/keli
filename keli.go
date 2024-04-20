@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -395,8 +396,154 @@ func weatherJSONHandler(w http.ResponseWriter, weather WeatherData) {
 	}
 }
 
+func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	city := r.URL.Path[1:]
+
+	weather, err := GetWeatherData(city)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	// Create minimal html template with title and styles
+	// 	tmpl	 := template.Must(template.New("weather").Parse(`
+	// <!DOCTYPE html>
+	// <html>
+	// <head>
+	// 	<meta charset="utf-8">
+	// 	<title>Weather Balloon</title>
+	// 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+	// </head>
+	// <body>
+	// 	<div class="ui container">
+	// 		<div class="ui segment">
+	// 			<h1>Sää {{.City}} (Klo. {{.ObservationHour}})</h1>
+	// 			<h2>{{.WeatherSummary}}</h2>
+	// 			<h2>{{.Temperature}}°C (Tuntuu kuin {{.TemperatureFeelsLike}}°C)</h2>
+	// 			<p>Päivän alin: {{.TemperatureMin}}°C</p>
+	// 			<p>Päivän ylin: {{.TemperatureMax}}°C</p>
+	// 			<p>Sadetta: {{.Rainfall}} mm</p>
+	// 			<p>Lunta: {{.Snowfall}} cm</p>
+	// 			<p>Tuuli: {{.WindSpeed}} m/s</p>
+	// 			<p>Huomenna: {{.TemperatureTomorrow}}°C (Alin: {{.TemperatureMinTomorrow}}°C)</p>
+	// 			<p>Auringonnousu: {{.Sunrise}}</p>
+	// 			<p>Auringonlasku: {{.Sunset}}</p>
+	// 			<p>Päivän pituus: {{.DayLength}}</p>
+	// 		</div>
+	// 	</div>
+	// </body>
+	// </html>
+	// `))
+
+	// Similar template but using a weather-app type styling using tailwindcss
+	tailwindTmpl := template.Must(template.New("weather-tailwind").Parse(`
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Sää {{.City}}</title>
+	<link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css">
+	<script src="https://kit.fontawesome.com/ab6199b688.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-gray-200">
+	<div class="container mx-auto p-4">
+		<div class="text-center">
+			<h1 class="text-4xl text-gray-900 font-bold uppercase">{{.City}} (Klo {{.ObservationHour}})</h1>
+		</div>
+
+		<div class="p-8 bg-white shadow-md rounded-lg mt-4">
+			<h2 class="text-3xl text-gray-800 text-center pb-8">{{.WeatherSummary}}</h2>
+			<div class="flex justify-between items-center">
+				<div class="text-center">
+					<p class="text-6xl font-bold text-gray-900">{{.Temperature}}°C</p>
+				</div>
+				<div>
+					<p class="text-3xl font-bold text-gray-700">Tuntuu kuin {{.TemperatureFeelsLike}}°C</p>
+				</div>
+			</div>
+			<div class="bg-gray-100 mt-8 p-4 rounded-lg shadow-sm grid grid-cols-5 gap-4 items-center justify-center">
+				<div class="flex items-center justify-center gap-2">
+					<div class="flex flex-col items-center justify-center">
+						<i class="fas fa-thermometer-full text-red-600 text-3xl"></i>
+						<div class="text-2xl font-semibold text-red-600">{{.TemperatureMax}}°C</div>
+					</div>
+				</div>
+				<div class="flex items-center justify-center gap-2">
+					<div class="flex flex-col items-center justify-center">
+						<i class="fas fa-thermometer-empty text-blue-600 text-3xl"></i>
+						<div class="text-2xl font-semibold text-blue-600">{{.TemperatureMin}}°C</div>
+					</div>
+				</div>
+				<div class="flex items-center justify-center gap-2">
+					<div class="flex flex-col items-center justify-center">
+						<i class="fas fa-tint text-blue-500 text-3xl"></i>
+						<div class="text-2xl font-semibold text-blue-500">{{.Rainfall}} mm</div>
+					</div>
+				</div>
+				<div class="flex items-center justify-center">
+					<div class="flex flex-col items-center justify-center">
+						<i class="fas fa-snowflake text-indigo-500 text-3xl"></i>
+						<div class="text-2xl font-semibold text-indigo-500">{{.Snowfall}} cm</div>
+					</div>
+				</div>
+				<div class="flex items-center justify-center">
+					<div class="flex flex-col items-center justify-center">
+						<i class="fas fa-wind text-gray-600 text-3xl"></i>
+						<div class="text-2xl font-semibold text-gray-600">{{.WindSpeed}} m/s</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white shadow-md rounded-lg mt-4 p-8 grid grid-cols-1 gap-4">
+			<h2 class="text-3xl text-gray-900 font-bold text-center">Huomenna</h2>
+			<div class="flex justify-between items-center">
+				<div class="text-center">
+					<p class="text-6xl font-bold text-gray-900">{{.TemperatureTomorrow}}°C</p>
+				</div>
+				<div>
+					<p class="text-3xl font-bold text-gray-700">Alin: {{.TemperatureMinTomorrow}}°C</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white shadow-md rounded-lg mt-4 p-8 grid grid-cols-1 gap-4">
+			<h2 class="text-3xl text-gray-900 font-bold pb-8 text-center">Auringon nousu ja lasku</h2>
+			<div class="grid grid-cols-2 gap-4 items-center">
+				<div class="flex items-center justify-center">
+					<div class="flex flex-col items-center justify-center bg-gradient-to-br from-orange-600 to-orange-500 text-transparent bg-clip-text">
+						<i class="fas fa-sun text-orange-500 text-4xl"></i>
+						<p class="text-orange-500 font-bold text-4xl">Nousee {{.Sunrise}}</p>
+					</div>
+				</div>
+				<div class="flex items-center justify-center">
+					<div class="flex flex-col items-center justify-center bg-gradient-to-br from-purple-500 to-purple-700 text-transparent bg-clip-text">
+						<i class="fas fa-sun text-4xl"></i>
+						<p class="font-bold text-4xl">Laskee {{.Sunset}}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+`))
+
+	err = tailwindTmpl.Execute(w, weather)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func main() {
+	http.HandleFunc("/", weatherPageHandler)
 	http.HandleFunc("/w", weatherHandler)
+	http.HandleFunc("/api", weatherHandler)
+
 	log.Printf("weather balloon spying on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
