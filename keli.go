@@ -454,6 +454,7 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 <head>
 	<meta charset="utf-8">
 	<title>Sää {{.City}}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css">
 	<script src="https://kit.fontawesome.com/ab6199b688.js" crossorigin="anonymous"></script>
 </head>
