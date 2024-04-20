@@ -325,6 +325,8 @@ func cleanTemperatureString(temperature string) (temp float64, err error) {
 }
 
 func weatherHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Received request for %s", r.URL.Path)
+
 	city := r.URL.Query().Get("city")
 	if city == "" {
 		http.Error(w, "Missing 'city' parameter", http.StatusBadRequest)
@@ -397,6 +399,8 @@ func weatherJSONHandler(w http.ResponseWriter, weather WeatherData) {
 }
 
 func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Received request for %s", r.URL.Path)
+
 	w.Header().Set("Content-Type", "text/html")
 
 	city := r.URL.Path[1:]
