@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -432,10 +434,46 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func placesHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Received request for %s", r.URL.Path)
+
+	w.Header().Set("Content-Type", "text/json")
+
+	places, err := GetPlaces()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(places)
+}
+
+// GetPlaces returns a list of known places
+func GetPlaces() (places []string, err error) {
+	file, err := os.Open("data/places.txt")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		places = append(places, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return places, nil
+}
+
 func main() {
 	http.HandleFunc("/", weatherPageHandler)
 	http.HandleFunc("/w", weatherHandler)
 	http.HandleFunc("/api", weatherHandler)
+	http.HandleFunc("/places", placesHandler)
 
 	log.Printf("weather balloon spying on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

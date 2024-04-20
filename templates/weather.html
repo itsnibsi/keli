@@ -17,39 +17,16 @@
 </head>
 
 <body class="bg-gray-100">
-  <div class="container mt-8 p-8">
-    <div class="relative hidden">
-      <select id="city-select"
-        class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
-        <option value="">Valitse kaupunki</option>
-        <option value="Helsinki">Helsinki</option>
-        <option value="Tampere">Tampere</option>
-        <option value="Oulu">Oulu</option>
-        <option value="Turku">Turku</option>
-        <option value="Helsinki">Hyvinkää</option>
+  <div class="container p-8">
+    <h1 class="text-3xl font-bold relative text-gray-900 text-center">Sää <span id="city-header"
+        class="cursor-pointer border-b-4 border-blue-400">{{.City}}</span>
+      (Klo
+      {{.ObservationHour}})
+
+      <select name="city-select" id="city-select"
+        class="absolute hidden shadow-md px-4 py-2 block w-full text-gray-900 bg-white border rounded-md focus:ring-blue-500 focus:outline-blue-500 border-r-8 border-transparent outline outline-neutral-800 transition-all duration-300">
       </select>
-      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-        <i class="fas fa-chevron-down"></i>
-      </div>
-    </div>
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const selectElement = document.getElementById('city-select');
-        const cityName = '{{.City}}';
-        for (let i = 0; i < selectElement.options.length; i++) {
-          if (selectElement.options[i].value === cityName) {
-            selectElement.options[i].selected = true;
-            break;
-          }
-        }
-      });
-
-      document.getElementById('city-select').addEventListener('change', function () {
-        window.location.href = `/${this.value}`;
-      });
-    </script>
-
-    <h1 class="mt-4 text-3xl font-bold text-gray-900 text-center">{{.City}} (Klo {{.ObservationHour}})</h1>
+    </h1>
 
     <div class="mt-8 bg-white shadow-md rounded-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 text-center">{{.WeatherSummary}}</h2>
@@ -106,6 +83,52 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // Load list of places from /places, a json api that returns an array of strings
+    fetch('/places')
+      .then(response => response.json())
+      .then(places => {
+        const placeList = document.getElementById('city-select')
+        placeList.size = 4;
+        places.forEach(place => {
+          const option = document.createElement('option')
+          option.value = place
+          option.text = place
+          if (place === '{{.City}}') {
+            option.selected = true
+          }
+          placeList.appendChild(option)
+        })
+        placeList.addEventListener('change', event => {
+          window.location.href = '/' + event.target.value
+        })
+      })
+
+    const cityHeader = document.getElementById('city-header');
+    const citySelect = document.getElementById('city-select');
+
+    cityHeader.addEventListener('click', () => {
+      toggleVisibility(citySelect);
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    document.addEventListener('click', event => {
+      if (citySelect.classList.contains('hidden')) {
+        return;
+      }
+      if (!citySelect.contains(event.target) && !cityHeader.contains(event.target)) {
+        toggleVisibility(citySelect);
+      }
+    });
+
+    function toggleVisibility(element) {
+      element.classList.toggle('hidden');
+      if (!element.classList.contains('hidden')) {
+        element.focus();
+      }
+    }
+  </script>
 </body>
 
 </html>
