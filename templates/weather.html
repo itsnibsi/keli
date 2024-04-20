@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Sää {{.City}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" />
+  <script src="https://kit.fontawesome.com/ab6199b688.js" crossorigin="anonymous"></script>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon" />
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+  <div class="container mt-8 p-8">
+    <h1 class="text-3xl font-bold text-gray-900 text-center">{{.City}} (Klo {{.ObservationHour}})</h1>
+
+    <div class="mt-8 bg-white shadow-md rounded-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 text-center">{{.WeatherSummary}}</h2>
+      <div class="mt-4 flex justify-center items-center">
+        <div class="text-6xl font-bold text-gray-900">{{.Temperature}}°C</div>
+        <div class="text-2xl font-bold text-gray-700 ml-4">
+          (tuntuu kuin {{.TemperatureFeelsLike}}°C)
+        </div>
+      </div>
+      <div class="mt-8 flex justify-center">
+        <div class="flex space-x-4">
+          <div class="text-xl font-medium text-gray-700">Alin: {{.TemperatureMin}}°C</div>
+          <div class="text-xl font-medium text-gray-700">Ylin: {{.TemperatureMax}}°C</div>
+        </div>
+      </div>
+
+      <div class="mt-12 grid grid-cols-3 gap-4 items-center">
+        <div class="flex flex-col items-center">
+          <i class="fas fa-tint text-blue-500 text-2xl"></i>
+          <div class="text-lg font-medium text-blue-500">{{.Rainfall}} mm</div>
+        </div>
+        <div class="flex flex-col items-center">
+          <i class="fas fa-snowflake text-indigo-500 text-2xl"></i>
+          <div class="text-lg font-medium text-indigo-500">{{.Snowfall}} cm</div>
+        </div>
+        <div class="flex flex-col items-center">
+          <i class="fas fa-wind text-gray-600 text-2xl"></i>
+          <div class="text-lg font-medium text-gray-600">{{.WindSpeed}} m/s</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-16 bg-white shadow-md rounded-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 text-center">Huomenna</h2>
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-6xl font-bold text-gray-900">{{.TemperatureTomorrow}}°C</div>
+        <div class="text-3xl font-bold text-gray-700">Alin: {{.TemperatureMinTomorrow}}°C</div>
+      </div>
+    </div>
+
+    <div class="mt-16 bg-white shadow-md rounded-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 text-center">Aurinko</h2>
+      <div class="mt-4 grid grid-cols-2 gap-4 items-center">
+        <div
+          class="flex flex-col items-center bg-gradient-to-br from-orange-600 to-orange-500 text-transparent bg-clip-text">
+          <i class="fas fa-sun text-4xl"></i>
+          <div class="text-lg font-medium">Nousee {{.Sunrise}}</div>
+        </div>
+        <div
+          class="flex flex-col items-center bg-gradient-to-br from-purple-500 to-purple-700 text-transparent bg-clip-text">
+          <i class="fas fa-sun text-4xl"></i>
+          <div class="text-lg font-medium">Laskee {{.Sunset}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
