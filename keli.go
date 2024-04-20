@@ -487,6 +487,8 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 						<div class="text-xl font-semibold text-blue-600">{{.TemperatureMin}}°C</div>
 					</div>
 				</div>
+			</div>
+			<div class="bg-gray-100 mt-8 p-4 rounded-lg shadow-sm grid grid-cols-5 gap-4 items-center justify-center">
 				<div class="flex items-center justify-center gap-2">
 					<div class="flex flex-col items-center justify-center">
 						<i class="fas fa-tint text-blue-500 text-2xl"></i>
@@ -521,16 +523,16 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 		</div>
 
 		<div class="bg-white shadow-md rounded-lg mt-4 p-8 grid grid-cols-1 gap-4">
-			<h2 class="text-3xl text-gray-900 font-bold pb-8 text-center">Auringon nousu ja lasku</h2>
+			<h2 class="text-3xl text-gray-900 font-bold pb-8 text-center">Aurinko</h2>
 			<div class="grid grid-cols-2 gap-4 items-center">
 				<div class="flex items-center justify-center">
 					<div class="flex flex-col items-center justify-center bg-gradient-to-br from-orange-600 to-orange-500 text-transparent bg-clip-text">
-						<i class="fas fa-sun text-4xl"></i>
+						<i class="fas fa-sun text-center text-4xl"></i>
 						<p class="font-bold text-2xl">Nousee {{.Sunrise}}</p>
 					</div>
 				</div>
 				<div class="flex items-center justify-center">
-					<div class="flex flex-col items-center justify-center bg-gradient-to-br from-purple-500 to-purple-700 text-transparent bg-clip-text">
+					<div class="flex flex-col text-center items-center justify-center bg-gradient-to-br from-purple-500 to-purple-700 text-transparent bg-clip-text">
 						<i class="fas fa-sun text-4xl"></i>
 						<p class="font-bold text-2xl">Laskee {{.Sunset}}</p>
 					</div>
