@@ -35,7 +35,7 @@ type WeatherData struct {
 	// Amount of snow (mm)
 	Snowfall float64 `json:"snowfall"`
 	// Wind speed (m/s)
-	WindSpeed float64 `json:"windSpeed"`
+	WindSpeed int `json:"windSpeed"`
 	// Tomorrow's temperature (C)
 	TemperatureTomorrow float64 `json:"temperatureTomorrow"`
 	// Tomorrow's min temperature (C)
@@ -178,7 +178,9 @@ func mergeWeatherData(data []WeatherData) (md WeatherData) {
 		md.TemperatureMin = chooseNonZeroFloat64(md.TemperatureMin, d.TemperatureMin)
 		md.Rainfall = chooseNonZeroFloat64(md.Rainfall, d.Rainfall)
 		md.Snowfall = chooseNonZeroFloat64(md.Snowfall, d.Snowfall)
-		md.WindSpeed = chooseNonZeroFloat64(md.WindSpeed, d.WindSpeed)
+		if d.WindSpeed != 0 {
+			md.WindSpeed = d.WindSpeed
+		}
 		md.WeatherSummary = chooseNonEmptyString(md.WeatherSummary, d.WeatherSummary)
 		// Moisio
 		md.Sunrise = chooseNonEmptyString(md.Sunrise, d.Sunrise)
@@ -223,7 +225,7 @@ func parseForecaData(doc *goquery.Document) (data WeatherData, err error) {
 
 	// Wind speed
 	windSpeedText := doc.Find("#dailybox > div:nth-child(1) > a > div > p.w > span > em").First().Text()
-	windSpeed, err := strconv.ParseFloat(windSpeedText, 64)
+	windSpeed, err := strconv.Atoi(windSpeedText)
 	if err != nil {
 		return WeatherData{}, err
 	}
@@ -334,6 +336,50 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
+
+	format := r.URL.Query().Get("format")
+	switch format {
+	case "text":
+		weatherTextHandler(w, weather)
+	default:
+		weatherJSONHandler(w, weather)
+	}
+}
+
+func weatherTextHandler(w http.ResponseWriter, weather WeatherData) {
+	w.Header().Set("Content-Type", "text/plain")
+
+	output := fmt.Sprintf("Sää %s (Klo. %02d)\n\n", weather.City, weather.ObservationHour)
+	output += fmt.Sprintf("%s\n", weather.WeatherSummary)
+
+	output += fmt.Sprintf("Lämpötila: %s (Tuntuu kuin %s)\n", temperatureWithSign(weather.Temperature), temperatureWithSign(weather.TemperatureFeelsLike))
+	output += fmt.Sprintf("Päivän alin: %s\n", temperatureWithSign(weather.TemperatureMin))
+	output += fmt.Sprintf("Päivän ylin: %s\n", temperatureWithSign(weather.TemperatureMin))
+
+	output += fmt.Sprintf("Sadetta: %.1f mm\n", weather.Rainfall)
+	output += fmt.Sprintf("Lunta: %.1f cm\n", weather.Snowfall)
+	output += fmt.Sprintf("Tuuli: %d m/s\n", weather.WindSpeed)
+
+	output += fmt.Sprintf("Huomenna: %s (Alin: %s)\n", temperatureWithSign(weather.TemperatureTomorrow), temperatureWithSign(weather.TemperatureMinTomorrow))
+
+	output += fmt.Sprintf("Auringonnousu: %s\nAuringonlasku: %s\n", weather.Sunrise, weather.Sunset)
+	output += fmt.Sprintf("Päivän pituus: %s\n", weather.DayLength)
+
+	_, err := w.Write([]byte(output))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func temperatureWithSign(temperature float64) string {
+	if temperature > 0 {
+		return fmt.Sprintf("+%.1f°C", temperature)
+	}
+	return fmt.Sprintf("%.1f°C", temperature)
+}
+
+func weatherJSONHandler(w http.ResponseWriter, weather WeatherData) {
 	jsonData, err := json.Marshal(weather)
 
 	if err != nil {
@@ -342,12 +388,10 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
 	_, err = w.Write(jsonData)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 }
 
