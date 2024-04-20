@@ -457,6 +457,7 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css">
 	<script src="https://kit.fontawesome.com/ab6199b688.js" crossorigin="anonymous"></script>
+	<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
 </head>
 <body class="bg-gray-200">
 	<div class="container mx-auto p-4">
@@ -466,29 +467,17 @@ func weatherPageHandler(w http.ResponseWriter, r *http.Request) {
 
 		<div class="p-8 bg-white shadow-md rounded-lg mt-4">
 			<h2 class="text-3xl text-gray-800 text-center pb-8">{{.WeatherSummary}}</h2>
-			<div class="flex justify-between items-center">
+			<div class="flex flex-col justify-center items-center mb-4">
 				<div class="text-center">
-					<p class="text-4xl font-bold text-gray-900">{{.Temperature}}°C</p>
-				</div>
-				<div>
-					<p class="text-2xl font-bold text-gray-700">Tuntuu {{.TemperatureFeelsLike}}°C</p>
+					<p class="text-6xl font-bold text-gray-900">{{.Temperature}}°C</p>
+					<p class="text-2xl font-bold text-gray-700">Tuntuu kuin {{.TemperatureFeelsLike}}°C</p>
 				</div>
 			</div>
-			<div class="bg-gray-100 mt-8 p-4 rounded-lg shadow-sm grid grid-cols-5 gap-4 items-center justify-center">
-				<div class="flex items-center justify-center gap-2">
-					<div class="flex flex-col items-center justify-center">
-						<i class="fas fa-thermometer-full text-red-600 text-2xl"></i>
-						<div class="text-xl font-semibold text-red-600">{{.TemperatureMax}}°C</div>
-					</div>
-				</div>
-				<div class="flex items-center justify-center gap-2">
-					<div class="flex flex-col items-center justify-center">
-						<i class="fas fa-thermometer-empty text-blue-600 text-2xl"></i>
-						<div class="text-xl font-semibold text-blue-600">{{.TemperatureMin}}°C</div>
-					</div>
-				</div>
+			<div class="flex justify-center gap-4 items-center">
+				<p class="text-xl font-bold text-gray-700">Alin: {{.TemperatureMin}}°C</p>
+				<p class="text-xl font-bold text-gray-700">Ylin: {{.TemperatureMax}}°C</p>
 			</div>
-			<div class="bg-gray-100 mt-8 p-4 rounded-lg shadow-sm grid grid-cols-5 gap-4 items-center justify-center">
+			<div class="bg-gray-100 mt-8 p-4 rounded-lg shadow-sm grid grid-cols-3 gap-4 items-center justify-center">
 				<div class="flex items-center justify-center gap-2">
 					<div class="flex flex-col items-center justify-center">
 						<i class="fas fa-tint text-blue-500 text-2xl"></i>
