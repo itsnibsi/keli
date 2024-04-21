@@ -388,7 +388,6 @@ func temperatureWithSign(temperature float64) string {
 
 func weatherJSONHandler(w http.ResponseWriter, weather WeatherData) {
 	jsonData, err := json.Marshal(weather)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -474,7 +473,21 @@ func main() {
 	http.HandleFunc("/w", weatherHandler)
 	http.HandleFunc("/api", weatherHandler)
 	http.HandleFunc("/places", placesHandler)
+	http.HandleFunc("/smoke", smokeHandler)
 
 	log.Printf("weather balloon spying on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func smokeHandler(w http.ResponseWriter, r *http.Request) {
+	loc, _ := time.LoadLocation("Europe/Helsinki")
+	time.Local = loc
+	quitSmokingTime := time.Date(2024, time.April, 21, 18, 20, 0, 0, time.Local)
+	timeSinceQuitSmoking := time.Since(quitSmokingTime)
+	days := int(timeSinceQuitSmoking.Hours())/24 + int(timeSinceQuitSmoking.Minutes())/1440
+	hours := int(timeSinceQuitSmoking.Hours())%24 + int(timeSinceQuitSmoking.Minutes())%60/60
+	minutes := int(timeSinceQuitSmoking.Minutes()) % 60
+	seconds := int(timeSinceQuitSmoking.Seconds()) % 60
+
+	fmt.Fprintf(w, "%d days %d hours %d minutes %d seconds", days, hours, minutes, seconds)
 }
