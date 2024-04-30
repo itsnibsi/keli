@@ -17,6 +17,16 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+type HourlyForecast struct {
+	Hour                 string  `json:"hour"`
+	WeatherSymbol        string  `json:"weather"`
+	Temperature          float64 `json:"temperature"`
+	TemperatureFeelsLike float64 `json:"temperatureFeelsLike"`
+	WindSpeed            int     `json:"windSpeed"`
+	Rainfall             float64 `json:"rainfall"`
+	RainChance           int     `json:"rainChance"`
+}
+
 // WeatherData represents the weather data for a given city.
 type WeatherData struct {
 	// Human-readable name of the city we're looking at
@@ -39,6 +49,8 @@ type WeatherData struct {
 	Snowfall float64 `json:"snowfall"`
 	// Wind speed (m/s)
 	WindSpeed int `json:"windSpeed"`
+	// Rain chance (%)
+	RainChance int `json:"rainChance"`
 	// Tomorrow's temperature (C)
 	TemperatureTomorrow float64 `json:"temperatureTomorrow"`
 	// Tomorrow's min temperature (C)
@@ -51,6 +63,8 @@ type WeatherData struct {
 	DayLength string `json:"dayLength"`
 	// The last time the weather data was updated in the cache
 	LastUpdated time.Time `json:"lastUpdated"`
+	// Hourly forecast
+	HourlyForecast []HourlyForecast `json:"hourlyForecast"`
 }
 
 // WeatherSource represents a source of weather data.
@@ -134,6 +148,8 @@ func GetWeatherData(city string) (weather WeatherData, err error) {
 	var weatherData []WeatherData
 	for data := range weatherDataChan {
 		weatherData = append(weatherData, data)
+		log.Printf("Found weather data for %s", city)
+		log.Printf("Data: %+v", data)
 	}
 
 	finalWeatherData := mergeWeatherData(weatherData)
@@ -197,6 +213,10 @@ func mergeWeatherData(data []WeatherData) (md WeatherData) {
 		}
 		md.TemperatureTomorrow = chooseNonZeroFloat64(md.TemperatureTomorrow, d.TemperatureTomorrow)
 		md.TemperatureMinTomorrow = chooseNonZeroFloat64(md.TemperatureMinTomorrow, d.TemperatureMinTomorrow)
+		if d.HourlyForecast != nil {
+			md.HourlyForecast = d.HourlyForecast
+			log.Printf("Hourly forecast: %v", d.HourlyForecast)
+		}
 	}
 
 	return
@@ -207,6 +227,7 @@ func parseForecaData(doc *goquery.Document) (data WeatherData, err error) {
 	tempMaxText := doc.Find("#dailybox > div:nth-child(1) > a > div > p.tx > abbr").First().Text()
 	tempMax, err := cleanTemperatureString(tempMaxText)
 	if err != nil {
+		log.Printf("Foreca - Error parsing temperature: %v", err)
 		return WeatherData{}, err
 	}
 	data.TemperatureMax = tempMax
@@ -215,6 +236,7 @@ func parseForecaData(doc *goquery.Document) (data WeatherData, err error) {
 	tempMinText := doc.Find("#dailybox > div:nth-child(1) > a > div > p.tn > abbr").First().Text()
 	tempMin, err := cleanTemperatureString(tempMinText)
 	if err != nil {
+		log.Printf("Foreca - Error parsing temperature FL: %v", err)
 		return WeatherData{}, err
 	}
 	data.TemperatureMin = tempMin
@@ -223,20 +245,22 @@ func parseForecaData(doc *goquery.Document) (data WeatherData, err error) {
 	windSpeedText := doc.Find("#dailybox > div:nth-child(1) > a > div > p.w > span > em").First().Text()
 	windSpeed, err := strconv.Atoi(windSpeedText)
 	if err != nil {
+		log.Printf("Foreca - Error parsing wind speed: %v", err)
 		return WeatherData{}, err
 	}
 	data.WindSpeed = windSpeed
 
-	// Snowfall
-	snowfallText := doc.Find("#dailybox > div:nth-child(1) > a > div > div.p > em").First().Text()
-	snowfall, err := strconv.ParseFloat(strings.Replace(snowfallText, ",", ".", -1), 64)
-	if err != nil {
-		return WeatherData{}, err
-	}
-	data.Snowfall = snowfall
+	// // Snowfall
+	// snowfallText := doc.Find("#dailybox > div:nth-child(1) > a > div > div.p > em").First().Text()
+	// snowfall, err := strconv.ParseFloat(strings.Replace(snowfallText, ",", ".", -1), 64)
+	// if err != nil {
+	// 	log.Printf("Foreca - Error parsing snowfall: %v", err)
+	// 	return WeatherData{}, err
+	// }
+	// data.Snowfall = snowfall
 
 	// Weather summarized text
-	weatherSummary := doc.Find("p.txt").First().Text()
+	weatherSummary := doc.Find(".today .day .txt").First().Text()
 	data.WeatherSummary = strings.Split(weatherSummary, ".")[0]
 
 	return
@@ -281,7 +305,59 @@ func parseAmpparitData(doc *goquery.Document) (data WeatherData, err error) {
 	}
 	data.ObservationHour = observationHourInt
 
-	// Next hours
+	hours := doc.Find(".weather-hour-selector ol > li").Slice(0, 24)
+	hours.Each(func(i int, s *goquery.Selection) {
+		tempString := s.Find(".weather-temperature > span").First().Text()
+		temp, err := cleanTemperatureString(tempString)
+		if err != nil {
+			log.Printf("Ampparit - Error parsing hourly temperature: %v", err)
+			return
+		}
+
+		tempFLString := s.Find(".weather-temperature > span").First().Text()
+		tempFL, err := cleanTemperatureString(tempFLString)
+		if err != nil {
+			log.Printf("Ampparit - Error parsing hourly temperature FL: %v", err)
+			return
+		}
+
+		windSpeedStr := s.Find(".weather-wind > .weather-value").First().Text()
+		windSpeed, err := strconv.Atoi(windSpeedStr)
+		if err != nil {
+			log.Printf("Ampparit - Error parsing hourly wind speed: %v", err)
+			return
+		}
+
+		rainfallStr := s.Find(".weather-precipitation-amount").First().Text()
+		rainfallStr = strings.Replace(rainfallStr, " mm", "", -1)
+		rainfall, err := strconv.ParseFloat(rainfallStr, 64)
+		if err != nil {
+			log.Printf("Ampparit - Error parsing hourly rainfall: %v", err)
+			return
+		}
+
+		weatherSymbolText := s.Find(".weather-symbol > span").First().AttrOr("class", "invalid")
+		var weatherSymbol string
+
+		switch weatherSymbolText {
+		case "d000":
+			weatherSymbol = "☀️"
+		case "n000":
+			weatherSymbol = "🌜"
+		default:
+			weatherSymbol = "❓"
+		}
+
+		data.HourlyForecast = append(data.HourlyForecast, HourlyForecast{
+			Hour:                 s.Find("time").Text(),
+			WeatherSymbol:        weatherSymbol,
+			Temperature:          temp,
+			TemperatureFeelsLike: tempFL,
+			WindSpeed:            windSpeed,
+			Rainfall:             rainfall,
+			RainChance:           0,
+		})
+	})
 
 	// Tomorrow weather
 	temperatureTomorrowText := doc.Find(".weekly-weather-list-wrapper:nth-child(2) .weather-temperature").First().Text()
@@ -298,6 +374,8 @@ func parseAmpparitData(doc *goquery.Document) (data WeatherData, err error) {
 		return WeatherData{}, err
 	}
 	data.TemperatureMinTomorrow = temperatureTomorrowMin
+
+	data.WeatherSummary = ""
 
 	return
 }

@@ -45,19 +45,43 @@
 
       <div class="mt-12 grid grid-cols-3 gap-4 items-center">
         <div class="flex flex-col items-center">
-          <i class="fas fa-tint text-blue-500 text-2xl"></i>
-          <div class="text-lg font-medium text-blue-500">{{.Rainfall}} mm</div>
-        </div>
-        <div class="flex flex-col items-center">
-          <i class="fas fa-snowflake text-indigo-500 text-2xl"></i>
-          <div class="text-lg font-medium text-indigo-500">{{.Snowfall}} cm</div>
-        </div>
-        <div class="flex flex-col items-center">
           <i class="fas fa-wind text-gray-600 text-2xl"></i>
           <div class="text-lg font-medium text-gray-600">{{.WindSpeed}} m/s</div>
         </div>
+        <div class="flex flex-col items-center">
+          <i class="fas fa-tint text-blue-500 text-2xl"></i>
+          <div class="text-lg font-medium text-blue-500">{{.Rainfall}} mm</div>
+        </div>
+        {{/* <div class="flex flex-col items-center">
+          <i class="fas fa-sun text-indigo-500 text-2xl"></i>
+          <div class="text-lg font-medium text-indigo-500">{{.Snowfall}} h</div>
+        </div> */}}
+        <div class="flex flex-col items-center">
+          <i class="fas fa-umbrella text-indigo-400 text-2xl"></i>
+          <div class="text-lg font-medium text-indigo-500">{{.RainChance}} cm</div>
+        </div>
       </div>
     </div>
+
+    <!-- Hourly forecast -->
+    <div class="mt-16 bg-white shadow-md md:rounded-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-900 text-center">Hourly Forecast</h2>
+      <div class="mt-4 overflow-x-auto">
+        <div class="flex">
+          {{range .HourlyForecast}}
+          <div class="w-1/5 flex-shrink-0 flex-col items-center justify-center p-4 bg-gray-100 rounded-lg mr-4 mb-2">
+            <div class="text-2xl font-bold text-center">{{.Hour}}</div>
+            <div class="text-5xl text-center">{{.WeatherSymbol}}</div>
+            <div class="text-4xl font-bold text-center">{{.Temperature}}°C</div>
+            <div class="text-lg font-medium text-gray-600 text-center">{{.WindSpeed}} m/s</div>
+            <div class="text-lg font-medium text-blue-400 text-center">{{.Rainfall}} mm</div>
+            <div class="text-lg font-medium text-indigo-500 text-center">{{.RainChance}}%</div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+    </div>
+
 
     <div class="mt-16 bg-white shadow-md md:rounded-lg p-8">
       <h2 class="text-2xl font-bold text-gray-900 text-center">Huomenna</h2>
